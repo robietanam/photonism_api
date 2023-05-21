@@ -11,6 +11,14 @@ const UserSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    namaLengkap: {
+        type: String,
+        required: true,
+    },
+    profileImage: {
+        type: String,
+        required: true,
+    },
     password: {
         type: String,
         required: true,

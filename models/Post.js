@@ -2,17 +2,15 @@ const mongoose = require("mongoose")
 
 const PostSchema = new mongoose.Schema({
     photo: {
-        type: String,
+        type: [String],
         required: true,
-        min: 4,
     },
     desc: {
         type: String,
         required: true,
-        min: 8,
     },
     location: {
-        type: String,
+        type: [Number, Number],
         required: true,
     },
     likes: {

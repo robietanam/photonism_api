@@ -3,11 +3,29 @@ const Post = require('../models/Post')
 const postController = require('express').Router()
 
 // get feed
-postController.get('/getFeed', async(req, res) => {
+postController.get('/', async(req, res) => {
     try {
         const posts = await Post.find({})
 
         return res.status(200).json(posts)
+    } catch (error) {
+        return res.status(500).json(error.message)
+    }
+})
+
+
+// get specific posts
+postController.get('/:id', async(req, res) => {
+    try {
+        const post = await Post.findById(req.params.id)
+
+        post.likes = post.likes.length
+
+        if (!post) {
+            return res.status(400).json(error.message)
+        } else{
+            return res.status(200).json(post)
+        }
     } catch (error) {
         return res.status(500).json(error.message)
     }
