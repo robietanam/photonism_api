@@ -1,9 +1,9 @@
 const express = require('express')
 const dotenv = require('dotenv').config()
 const mongoose = require('mongoose')
-const authController = require('./controllers/auth')
-const postController = require('./controllers/post')
-const userController = require('./controllers/user')
+const authController = require('./pages/api/auth')
+const postController = require('./pages/api/post')
+const userController = require('./pages/api/user')
 const app = express()
 
 // connect db

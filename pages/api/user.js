@@ -1,7 +1,7 @@
-const User = require('../models/User')
+const User = require('../../models/User')
 const bcrypt = require('bcrypt')
 const userController = require('express').Router()
-const verifyToken = require('../middlewares/verifyToken')
+const verifyToken = require('../../middlewares/verifyToken')
 
 // update
 userController.put("/profile/:userId", verifyToken, async (req, res) => {

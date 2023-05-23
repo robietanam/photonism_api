@@ -1,5 +1,5 @@
-const verifyToken = require('../middlewares/verifyToken')
-const Post = require('../models/Post')
+const verifyToken = require('../../middlewares/verifyToken')
+const Post = require('../../models/Post')
 const postController = require('express').Router()
 
 // get feed
