@@ -2,25 +2,46 @@ const verifyToken = require('../../middlewares/verifyToken')
 const Post = require('../../models/Post')
 const postController = require('express').Router()
 
-// get feed
-postController.get('/', async(req, res) => {
-    try {
-        const posts = await Post.find({})
+const rsa = require('../../rsa/rsa')
 
-        return res.status(200).json(posts)
-    } catch (error) {
-        return res.status(500).json(error.message)
+const public_rsa_key = 'MjI1NTg4OSw0MjY4MzQ3'
+
+// get feed
+postController.get('/', async (req, res) => {
+  try {
+    const skip = parseInt(req.query.skip) || 0; // Get the page number from the query parameters, default to 1 if not provided
+    const limit = parseInt(req.query.limit); // Get the number of posts per page from the query parameters, default to 10 if not provided
+
+    const totalPosts = await Post.countDocuments({});
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    const posts = await Post.find({}).skip(skip).limit(limit);
+
+    const decryptedPosts = [];
+    for (const post of posts) {
+      const { _id, createdAt, updatedAt, __v, likes, location, photo, userId, ...getPost } = post._doc;
+      const decryptedPost = rsa.decryptedObjectValues(getPost, process.env.PRIVATE_RSA_KEY);
+      const updatedPost = { _id, createdAt, updatedAt, __v, likes, location, photo, userId, ...decryptedPost };
+      decryptedPosts.push(updatedPost);
     }
-})
+
+    console.log(decryptedPosts);
+    console.log('----------------------');
+    return res.status(200).json({ posts: decryptedPosts, totalPages });
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
 
 
 // get specific posts
-postController.get('/:id', async(req, res) => {
+postController.get('/feed/:id', async(req, res) => {
     try {
-        const post = await Post.findById(req.params.id)
-
-        post.likes = post.likes.length
-
+        const posts = await Post.findById(req.params.id)
+        const {_id , createdAt, updatedAt, __v, likes,location, photo, userId, ...getPost}  = posts._doc
+        const decryptedPost = rsa.decryptedObjectValues(getPost, process.env.PRIVATE_RSA_KEY)
+        const post = { _id , createdAt, updatedAt, __v, likes,location,likes,photo,userId,  ...decryptedPost}
         if (!post) {
             return res.status(400).json(error.message)
         } else{
@@ -34,25 +55,37 @@ postController.get('/:id', async(req, res) => {
 // create
 postController.post('/', verifyToken, async (req, res) => {
     try {
-        const newPost = await Post.create({...req.body, userId: req.user.id})
-
-        return res.status(201).json(newPost)
+        console.log(req.user.id)
+        const {likes, location , photo, ...toEncrypt } = req.body
+        console.log(toEncrypt)
+        const encryptedBody = rsa.encryptedObjectValues(toEncrypt, public_rsa_key)
+        const newPost = await Post.create({...encryptedBody,likes: likes, location: location,photo: photo, userId: req.user.id})
+        const { desc, ...others} = newPost._doc
+        const decryptedDesc = rsa.decrypt( process.env.PRIVATE_RSA_KEY, desc) 
+        return res.status(201).json({decryptedDesc, others })
     } catch (error) {
         return res.status(500).json(error.message)
     }
 })
 
 // update
-postController.put('/:id', verifyToken, async (req, res) => {
+postController.put('/feed/:id', verifyToken, async (req, res) => {
     try {
         const post = await Post.findById(req.params.id)
 
-        console.log(post)
-
-        if(post.userId === req.user.id) {
-            const updatedPost = await Post.findByIdAndUpdate(req.params.id, {$set: req.body}, {new: true})
-
-            return res.status(200).json(updatedPost)
+        console.log('gET URNRRNNRRN')
+        if( post.userId === req.user.id) {
+            var {desc, ...others} = req.body
+            desc = rsa.encrypt( public_rsa_key, desc)
+            const toSave = {...others, desc }
+            console.log('------------ddadasdsdd-----')
+            console.log(toSave);
+            
+            const thePost = await Post.findByIdAndUpdate(req.params.id, {$set: toSave}, {new: true})
+            console.log(thePost)
+            const  { _id , createdAt,  updatedAt,  __v, likes, photo, location,  userId , ...updatedPost} = thePost._doc
+            const decUpdatedPost = rsa.decryptedObjectValues(updatedPost, process.env.PRIVATE_RSA_KEY)
+            return res.status(200).json({...decUpdatedPost, _id , createdAt, updatedAt, __v, likes,userId, location})
         } else {
             return res.status(403).json({msg: "You cant edit this post"})
         }
@@ -61,7 +94,7 @@ postController.put('/:id', verifyToken, async (req, res) => {
     }
 })
 // delete
-postController.delete('/:id', verifyToken, async(req, res) => {
+postController.delete('/feed/:id', verifyToken, async(req, res) => {
     try {
         const post = await Post.findById(req.params.id)
 
@@ -98,6 +131,27 @@ postController.put("/likeDislike/:id", verifyToken, async(req, res) => {
     }
 })
 
+// populer post based on likes
+postController.get('/popular', async (req, res) => {
+  try {
+    const posts = await Post.find({}).sort({ likes: -1 }).limit(10);
 
+    const decryptedPosts = [];
+    for (const post of posts) {
+      const { _id, createdAt, updatedAt, __v, likes, location, photo, userId, ...getPost } = post._doc;
+      const decryptedPost = rsa.decryptedObjectValues(getPost, process.env.PRIVATE_RSA_KEY);
+      const updatedPost = { _id, createdAt, updatedAt, __v, likes, location, photo, userId, ...decryptedPost };
+      decryptedPosts.push(updatedPost);
+    }
+
+    console.log(decryptedPosts);
+    console.log('----------------------');
+    return res.status(200).json(decryptedPosts);
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+  
 
 module.exports = postController
