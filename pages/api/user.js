@@ -21,7 +21,8 @@ userController.put("/profile/:userId", verifyToken, async (req, res) => {
 
         const decryptedUpdatedUser = rsa.decryptedObjectValues(updatedUser, process.env.PRIVATE_RSA_KEY)
 
-        return res.status(200).json({...decryptedUpdatedUser,_id, createdAt, updatedAt, __v })
+        // return res.status(200).json({...decryptedUpdatedUser,_id, createdAt, updatedAt, __v })
+        return res.status(200).json({user : {...decryptedUpdatedUser,_id, createdAt, updatedAt, __v }})
       } catch (error) {
           return res.status(500).json(error.message)
       }
