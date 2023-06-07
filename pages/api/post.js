@@ -85,7 +85,7 @@ postController.put('/feed/:id', verifyToken, async (req, res) => {
             console.log(thePost)
             const  { _id , createdAt,  updatedAt,  __v, likes, photo, location,  userId , ...updatedPost} = thePost._doc
             const decUpdatedPost = rsa.decryptedObjectValues(updatedPost, process.env.PRIVATE_RSA_KEY)
-            return res.status(200).json({...decUpdatedPost, _id , createdAt, updatedAt, __v, likes,userId, location})
+            return res.status(200).json({desc, _id , createdAt, updatedAt, __v, likes,userId, location})
         } else {
             return res.status(403).json({msg: "You cant edit this post"})
         }
