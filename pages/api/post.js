@@ -56,11 +56,11 @@ postController.get('/feed/:id', async(req, res) => {
 postController.post('/', verifyToken, async (req, res) => {
     try {
         console.log(req.user.id)
-        const {likes, location , photo, ...toEncrypt } = req.body
+        var {likes, location , photo, ...toEncrypt } = req.body
         console.log(toEncrypt)
         const encryptedBody = rsa.encryptedObjectValues(toEncrypt, public_rsa_key)
         const newPost = await Post.create({...encryptedBody,likes: likes, location: location,photo: photo, userId: req.user.id})
-        const  { _id , createdAt,  updatedAt,  __v, likes, photo, location,  userId , desc} = newPost._doc
+        var  { _id , createdAt,  updatedAt,  __v, likes, photo, location,  userId , desc} = newPost._doc
         const desc2 = rsa.decrypt( process.env.PRIVATE_RSA_KEY, desc) 
         return res.status(201).json({desc: desc2, _id , createdAt, updatedAt, __v, likes,userId, location})
     } catch (error) {
