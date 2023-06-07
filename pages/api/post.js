@@ -60,7 +60,7 @@ postController.post('/', verifyToken, async (req, res) => {
         console.log(toEncrypt)
         const encryptedBody = rsa.encryptedObjectValues(toEncrypt, public_rsa_key)
         const newPost = await Post.create({...encryptedBody,likes: likes, location: location,photo: photo, userId: req.user.id})
-        const { desc, ...others} = newPost._doc
+        const  { _id , createdAt,  updatedAt,  __v, likes, photo, location,  userId , desc} = newPost._doc
         const desc2 = rsa.decrypt( process.env.PRIVATE_RSA_KEY, desc) 
         return res.status(201).json({desc: desc2, _id , createdAt, updatedAt, __v, likes,userId, location})
     } catch (error) {
