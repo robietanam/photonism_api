@@ -28,7 +28,7 @@ authController.post('/register', async(req, res) => {
 
       console.log(otherDecypted)
       console.log('------------------2---------------------')
-      const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET, {expiresIn: '4h'})
+      const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET)
 
       return res.status(201).json({user: {...otherDecypted, _id , createdAt, updatedAt, __v,}, token})
     } catch (error) {
@@ -59,7 +59,7 @@ authController.post("/login", async(req, res) => {
        const {password ,_id ,createdAt,updatedAt, __v, ...others} = user._doc
        const otherDecypted =  decryptedObjectValues(others, process.env.PRIVATE_RSA_KEY)
 
-       const token = jwt.sign({id: user._id}, process.env.JWT_SECRET, {expiresIn: '4h'})
+       const token = jwt.sign({id: user._id}, process.env.JWT_SECRET)
 
        return res.status(200).json({user:  {...otherDecypted, _id , createdAt, updatedAt, __v,}, token})
     } catch (error) {
