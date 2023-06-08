@@ -31,4 +31,22 @@ userController.put("/profile/:userId", verifyToken, async (req, res) => {
   }
 })
 
+// Get a specific user
+userController.get("/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findById(userId);
+    if (user) {
+      const { _id, createdAt, updatedAt, __v, password, ...userData } = user._doc;
+      const decryptedUser = rsa.decryptedObjectValues(userData, process.env.PRIVATE_RSA_KEY);
+      console.log(decryptedUser);
+      return res.status(200).json({ user: { ...decryptedUser, _id, createdAt, updatedAt, __v } });
+    } else {
+      return res.status(404).json({ msg: "User not found" });
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: "Server error" });
+  }
+});
+
 module.exports = userController
