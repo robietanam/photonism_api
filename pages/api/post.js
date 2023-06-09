@@ -17,6 +17,10 @@ postController.get('/', async (req, res) => {
 
     const posts = await Post.find({}).sort({ updatedAt: -1 }).skip(skip).limit(limit);
 
+    if (posts.length === 0) {
+        return res.status(404).json({ msg: 'No posts found.' });
+    }
+
     const decryptedPosts = [];
     for (const post of posts) {
       const { _id, createdAt, updatedAt, __v, likes, location, photo, userId, ...getPost } = post._doc;
@@ -39,6 +43,11 @@ postController.get('/', async (req, res) => {
 postController.get('/feed/:id', async(req, res) => {
     try {
         const posts = await Post.findById(req.params.id)
+
+        if (!post) {
+            return res.status(404).json({ msg: 'No post found.' });
+        }
+
         const {_id , createdAt, updatedAt, __v, likes,location, photo, userId, ...getPost}  = posts._doc
         const decryptedPost = rsa.decryptedObjectValues(getPost, process.env.PRIVATE_RSA_KEY)
         const post = { _id , createdAt, updatedAt, __v, likes,location,likes,photo,userId,  ...decryptedPost}
@@ -135,6 +144,10 @@ postController.put("/likeDislike/:id", verifyToken, async(req, res) => {
 postController.get('/popular', async (req, res) => {
   try {
     const posts = await Post.find({}).sort({ likes: -1 }).limit(10);
+
+    if (!post) {
+        return res.status(404).json({ msg: 'No post found.' });
+    }
 
     const decryptedPosts = [];
     for (const post of posts) {
