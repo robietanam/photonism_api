@@ -15,7 +15,7 @@ postController.get('/', async (req, res) => {
     const totalPosts = await Post.countDocuments({});
     const totalPages = Math.ceil(totalPosts / limit);
 
-    const posts = await Post.find({}).sort({ updatedAt: -1 }).skip(skip).limit(limit);
+    const posts = await Post.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit);
 
     if (posts.length === 0) {
         return res.status(404).json({ msg: 'No posts found.' });
@@ -44,7 +44,7 @@ postController.get('/feed/:id', async(req, res) => {
     try {
         const posts = await Post.findById(req.params.id)
 
-        if (!post) {
+        if (!posts) {
             return res.status(404).json({ msg: 'No post found.' });
         }
 
@@ -145,7 +145,7 @@ postController.get('/popular', async (req, res) => {
   try {
     const posts = await Post.find({}).sort({ likes: -1 }).limit(10);
 
-    if (!post) {
+    if (!posts) {
         return res.status(404).json({ msg: 'No post found.' });
     }
 
