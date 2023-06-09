@@ -11,9 +11,7 @@ const public_rsa_key = 'MjI1NTg4OSw0MjY4MzQ3'
 userController.put("/profile/:userId", verifyToken, async (req, res) => {
   if (req.params.userId === req.user.id) {
       try {
-        if(req.body.password){
-          req.body.password = await rsa.encrypt(public_rsa_key, req.body.password)
-        }
+        
         const toSave = rsa.encryptedObjectValues(req.body, public_rsa_key)
         const response = await User.findByIdAndUpdate(req.params.userId, {$set: toSave}, {new: true})
 
