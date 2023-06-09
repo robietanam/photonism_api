@@ -82,6 +82,10 @@ postController.put('/feed/:id', verifyToken, async (req, res) => {
     try {
         const post = await Post.findById(req.params.id)
 
+        if (!post) {
+            return res.status(404).json({ msg: 'No post found.' });
+        }
+
         console.log('gET URNRRNNRRN')
         if( post.userId === req.user.id) {
             var {desc, ...others} = req.body
@@ -126,6 +130,10 @@ postController.put("/likeDislike/:id", verifyToken, async(req, res) => {
         const currentUserId = req.user.id
         const post = await Post.findById(req.params.id)
 
+        if (!post) {
+            return res.status(404).json({ msg: 'No post found.' });
+        }
+
         if(post.likes.includes(currentUserId)){
            post.likes = post.likes.filter((id) => id !== currentUserId)
            await post.save()
@@ -145,7 +153,7 @@ postController.get('/popular', async (req, res) => {
   try {
     const posts = await Post.find({}).sort({ likes: -1 }).limit(10);
 
-    if (!posts) {
+    if (posts.length === 0) {
         return res.status(404).json({ msg: 'No post found.' });
     }
 
