@@ -9,13 +9,13 @@ const public_rsa_key = 'MjI1NTg4OSw0MjY4MzQ3'
 // get feed
 postController.get('/', async (req, res) => {
   try {
-    const skip = parseInt(req.query.skip) || 0; // Get the page number from the query parameters, default to 1 if not provided
-    const limit = parseInt(req.query.limit); // Get the number of posts per page from the query parameters, default to 10 if not provided
+    const skip = parseInt(req.query.skip) || 0;
+    const limit = parseInt(req.query.limit);
 
     const totalPosts = await Post.countDocuments({});
     const totalPages = Math.ceil(totalPosts / limit);
 
-    const posts = await Post.find({}).skip(skip).limit(limit);
+    const posts = await Post.find({}).sort({ updatedAt: -1 }).skip(skip).limit(limit);
 
     const decryptedPosts = [];
     for (const post of posts) {
