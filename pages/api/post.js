@@ -150,28 +150,45 @@ postController.put("/likeDislike/:id", verifyToken, async(req, res) => {
 
 // populer post based on likes
 postController.get('/popular', async (req, res) => {
-  try {
-    const posts = await Post.find({}).sort({ likes: -1 }).limit(10);
-
-    if (posts.length === 0) {
-        return res.status(404).json({ msg: 'No post found.' });
+    try {
+      const posts = await Post.aggregate([
+        {
+          $project: {
+            _id: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            __v: 1,
+            likes: 1,
+            location: 1,
+            photo: 1,
+            userId: 1,
+            likesSum: { $size: "$likes" } // Calculate the sum of the "likes" array
+          }
+        },
+        { $sort: { likesSum: -1 } }, // Sort by the sum of likes in descending order
+        { $limit: 10 } // Limit the result to 10 posts
+      ]);
+  
+      if (posts.length === 0) {
+        return res.status(404).json({ msg: 'No posts found.' });
+      }
+  
+      const decryptedPosts = [];
+      for (const post of posts) {
+        const { _id, createdAt, updatedAt, __v, likes, location, photo, userId, likesSum, ...getPost } = post;
+        const decryptedPost = rsa.decryptedObjectValues(getPost, process.env.PRIVATE_RSA_KEY);
+        const updatedPost = { _id, createdAt, updatedAt, __v, likes, location, photo, userId, likesSum, ...decryptedPost };
+        decryptedPosts.push(updatedPost);
+      }
+  
+      console.log(decryptedPosts);
+      console.log('----------------------');
+      return res.status(200).json(decryptedPosts);
+    } catch (error) {
+      return res.status(500).json(error.message);
     }
-
-    const decryptedPosts = [];
-    for (const post of posts) {
-      const { _id, createdAt, updatedAt, __v, likes, location, photo, userId, ...getPost } = post._doc;
-      const decryptedPost = rsa.decryptedObjectValues(getPost, process.env.PRIVATE_RSA_KEY);
-      const updatedPost = { _id, createdAt, updatedAt, __v, likes, location, photo, userId, ...decryptedPost };
-      decryptedPosts.push(updatedPost);
-    }
-
-    console.log(decryptedPosts);
-    console.log('----------------------');
-    return res.status(200).json(decryptedPosts);
-  } catch (error) {
-    return res.status(500).json(error.message);
-  }
-});
+  });
+  
 
   
 
