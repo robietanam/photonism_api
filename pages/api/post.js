@@ -157,6 +157,7 @@ postController.get('/popular', async (req, res) => {
             _id: 1,
             createdAt: 1,
             updatedAt: 1,
+            desc: 1,
             __v: 1,
             likes: 1,
             location: 1,
