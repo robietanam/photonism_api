@@ -183,7 +183,7 @@ postController.get('/popular', async (req, res) => {
   
       console.log(decryptedPosts);
       console.log('----------------------');
-      return res.status(200).json(decryptedPosts);
+      return res.status(200).json({posts: decryptedPosts});
     } catch (error) {
       return res.status(500).json(error.message);
     }
